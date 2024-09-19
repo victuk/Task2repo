@@ -81,7 +81,7 @@ contract Lock {
             _depositorCurrency,
             ["", ""],
             block.timestamp,
-            0
+            block.timestamp
         );
     }
 
@@ -89,6 +89,8 @@ contract Lock {
         require(msg.sender != address(0), "Address zero detected");
 
         swapStruct memory singleSwap = Swaps[swapId];
+        
+        require(singleSwap.createdAt != 0, "Swap request does not exist");
 
         require(singleSwap.status != SwapStatus.completed, "This swap has been completed already");
         require(singleSwap.status != SwapStatus.cancelled, "This swap was cancelled");
@@ -104,6 +106,26 @@ contract Lock {
         bool transferResult2 = IERC20(singleSwap.baseToken).transfer(msg.sender, singleSwap.depositAmount);
 
         require(transferResult2, "Transfer failed.");
+
+        Swaps[swapId].status = SwapStatus.completed;
+
+    }
+
+    function cancelOrder(uint256 swapId) external {
+
+        require(msg.sender != address(0), "Address zero detected");
+
+        swapStruct memory singleSwap = Swaps[swapId];
+
+        require(singleSwap.createdAt != 0, "Swap request does not exist");
+
+        require(singleSwap.depositAddress == msg.sender, "You are not the creator of this swap request so you can't cancel it.");
+
+        require(singleSwap.status != SwapStatus.completed, "This swap has been completed already");
+        require(singleSwap.status != SwapStatus.cancelled, "This swap was cancelled");
+
+        Swaps[swapId].status = SwapStatus.cancelled;
+        Swaps[swapId].updatedAt = block.timestamp;
 
     }
 
