@@ -9,6 +9,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Lock {
 
+    event SwapCreated(address depositor, uint256 swapFromAmount, string[2] swapFromCurrency, uint256 swapToAmount, string[2] swapToCurrency);
+
+    event SwapApproved(address depositor, uint256 swapFromAmount, string[2] swapFromCurrency, uint256 swapToAmount, string[2] swapToCurrency, address receiver);
+
+    event SwapCancelled(address whoCancelled, uint256 swapFromAmount, string[2] swapFromCurrency, uint256 swapToAmount, string[2] swapToCurrency);
+
     uint256 swapCount;
 
     address owner;
@@ -54,11 +60,11 @@ contract Lock {
     function createSwap(
         uint256 _depositAmount,
         uint256 _withdrawAmount,
-        SwapStatus _status,
         address _depositAddress,
         address _baseToken,
         address _swapToken,
-        string[2] memory _depositorCurrency
+        string[2] memory _depositorCurrency,
+        string[2] memory _receiverCurrency
     ) external {
 
         require(msg.sender != address(0), "Address zero detected");
@@ -72,17 +78,22 @@ contract Lock {
         Swaps[swapCount] = swapStruct(
             _depositAmount,
             _withdrawAmount,
-            _status,
+            SwapStatus.pendng,
             _depositAddress,
             address(0),
             _baseToken,
             _swapToken,
             _depositorCurrency,
-            ["", ""],
+            _receiverCurrency,
             block.timestamp,
             block.timestamp
         );
+
+        emit SwapCreated(_depositAddress, _depositAmount, _depositorCurrency, _withdrawAmount, _receiverCurrency);
+
     }
+
+
 
     function swapToken(uint256 swapId) external {
         require(msg.sender != address(0), "Address zero detected");
@@ -108,6 +119,8 @@ contract Lock {
 
         Swaps[swapId].status = SwapStatus.completed;
 
+        emit SwapApproved(singleSwap.depositAddress, singleSwap.depositAmount, singleSwap.depositorCurrency, singleSwap.withdrawAmount, singleSwap.receiverCurrency, msg.sender);
+
     }
 
     function cancelOrder(uint256 swapId) external {
@@ -125,6 +138,8 @@ contract Lock {
 
         Swaps[swapId].status = SwapStatus.cancelled;
         Swaps[swapId].updatedAt = block.timestamp;
+
+        emit SwapCancelled(singleSwap.depositAddress, singleSwap.depositAmount, singleSwap.depositorCurrency, singleSwap.withdrawAmount, singleSwap.receiverCurrency);
 
     }
 
