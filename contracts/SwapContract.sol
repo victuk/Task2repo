@@ -56,7 +56,6 @@ contract Lock {
         uint256 _withdrawAmount,
         SwapStatus _status,
         address _depositAddress,
-        address _receiverAddress,
         address _baseToken,
         address _swapToken,
         string[2] memory _depositorCurrency
