@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-contract Lock {
+contract SwapContract {
 
     event SwapCreated(address depositor, uint256 swapFromAmount, string[2] swapFromCurrency, uint256 swapToAmount, string[2] swapToCurrency);
 
